@@ -65,6 +65,11 @@ export function PromptManager({ initialPrompts }: PromptManagerProps) {
               : item,
           ),
         );
+      } else {
+        setPrompts((previous) => [
+          { id: crypto.randomUUID(), title: safeTitle, content: safeContent },
+          ...previous,
+        ]);
       }
 
       setError(null);

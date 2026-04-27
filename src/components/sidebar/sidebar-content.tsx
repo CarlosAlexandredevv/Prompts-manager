@@ -24,7 +24,7 @@ export function SidebarContent() {
   }
 
   function handleNewPrompt() {
-    router.push('/new');
+    router.push('/');
   }
 
   return (
