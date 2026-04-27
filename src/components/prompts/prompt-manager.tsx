@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -32,6 +32,12 @@ export function PromptManager({ initialPrompts }: PromptManagerProps) {
   const [isSubmitPending, setIsSubmitPending] = useState(false);
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    // Sync local state with fresh server data after router.refresh().
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPrompts(initialPrompts);
+  }, [initialPrompts]);
+
   const handleSubmit = async () => {
     if (isSubmitPending) {
       return;
@@ -59,11 +65,6 @@ export function PromptManager({ initialPrompts }: PromptManagerProps) {
               : item,
           ),
         );
-      } else {
-        setPrompts((previous) => [
-          { id: `local-${Date.now()}`, title: safeTitle, content: safeContent },
-          ...previous,
-        ]);
       }
 
       setError(null);

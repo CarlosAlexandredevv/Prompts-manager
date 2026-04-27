@@ -55,9 +55,27 @@ describe('PromptManager', () => {
       title: 'Novo',
       content: 'Conteudo novo',
     });
+    expect(screen.queryByText('Novo')).not.toBeInTheDocument();
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('syncs created prompt from updated initialPrompts after refresh', async () => {
+    createPromptMock.mockResolvedValue({ ok: true });
+    const { rerender } = render(<PromptManager initialPrompts={[]} />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/titulo/i), 'Novo');
+    await user.type(screen.getByLabelText(/conteudo/i), 'Conteudo novo');
+    await user.click(screen.getByRole('button', { name: /salvar/i }));
+
+    rerender(
+      <PromptManager
+        initialPrompts={[{ id: 'real-1', title: 'Novo', content: 'Conteudo novo' }]}
+      />,
+    );
+
     expect(screen.getByText('Novo')).toBeInTheDocument();
     expect(screen.getByText('Conteudo novo')).toBeInTheDocument();
-    expect(refreshMock).toHaveBeenCalledTimes(1);
   });
 
   it('updates prompt when editing an existing item', async () => {
@@ -135,7 +153,7 @@ describe('PromptManager', () => {
     expect(submitButton).toBeDisabled();
 
     deferred.resolve({ ok: true });
-    await screen.findByText('Novo');
+    expect(await screen.findByRole('button', { name: /salvar/i })).toBeInTheDocument();
   });
 
   it('prevents double delete for same item while request is pending', async () => {
