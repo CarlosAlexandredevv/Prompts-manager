@@ -91,6 +91,15 @@ describe('prompt-actions integration', () => {
     expect(result).toEqual({ ok: false, error: 'Title obrigatório' });
   });
 
+  it('create com content vazio retorna erro de content obrigatório', async () => {
+    const result = await createPrompt({
+      title: 'Titulo valido',
+      content: '',
+    });
+
+    expect(result).toEqual({ ok: false, error: 'Content obrigatório' });
+  });
+
   it('update com id inexistente retorna Prompt not found', async () => {
     const result = await updatePrompt({
       id: 'prompt-inexistente',
