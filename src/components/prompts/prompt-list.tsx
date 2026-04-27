@@ -8,9 +8,17 @@ type PromptListProps = {
   prompts: PromptItem[];
   onEdit: (item: PromptItem) => void;
   onDelete: (id: string) => void;
+  isSubmitPending: boolean;
+  deletingIds: string[];
 };
 
-export function PromptList({ prompts, onEdit, onDelete }: PromptListProps) {
+export function PromptList({
+  prompts,
+  onEdit,
+  onDelete,
+  isSubmitPending,
+  deletingIds,
+}: PromptListProps) {
   return (
     <section>
       <ul className="space-y-3">
@@ -19,10 +27,18 @@ export function PromptList({ prompts, onEdit, onDelete }: PromptListProps) {
             <h2>{prompt.title}</h2>
             <p>{prompt.content}</p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => onEdit(prompt)}>
+              <button
+                type="button"
+                onClick={() => onEdit(prompt)}
+                disabled={isSubmitPending || deletingIds.includes(prompt.id)}
+              >
                 Editar
               </button>
-              <button type="button" onClick={() => onDelete(prompt.id)}>
+              <button
+                type="button"
+                onClick={() => onDelete(prompt.id)}
+                disabled={isSubmitPending || deletingIds.includes(prompt.id)}
+              >
                 Excluir
               </button>
             </div>

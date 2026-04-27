@@ -29,22 +29,51 @@ export function PromptManager({ initialPrompts }: PromptManagerProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitPending, setIsSubmitPending] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
 
   const handleSubmit = async () => {
-    const result = editingId
-      ? await updatePrompt({ id: editingId, title, content })
-      : await createPrompt({ title, content });
-
-    if (!result.ok) {
-      setError(result.error);
+    if (isSubmitPending) {
       return;
     }
 
-    setError(null);
-    setTitle('');
-    setContent('');
-    setEditingId(null);
-    router.refresh();
+    const safeTitle = title.trim();
+    const safeContent = content.trim();
+
+    setIsSubmitPending(true);
+    try {
+      const result = editingId
+        ? await updatePrompt({ id: editingId, title: safeTitle, content: safeContent })
+        : await createPrompt({ title: safeTitle, content: safeContent });
+
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      if (editingId) {
+        setPrompts((previous) =>
+          previous.map((item) =>
+            item.id === editingId
+              ? { ...item, title: safeTitle, content: safeContent }
+              : item,
+          ),
+        );
+      } else {
+        setPrompts((previous) => [
+          { id: `local-${Date.now()}`, title: safeTitle, content: safeContent },
+          ...previous,
+        ]);
+      }
+
+      setError(null);
+      setTitle('');
+      setContent('');
+      setEditingId(null);
+      router.refresh();
+    } finally {
+      setIsSubmitPending(false);
+    }
   };
 
   const handleEdit = (item: PromptItem) => {
@@ -55,20 +84,29 @@ export function PromptManager({ initialPrompts }: PromptManagerProps) {
   };
 
   const handleDelete = async (id: string) => {
-    const result = await deletePrompt({ id });
-    if (!result.ok) {
-      setError(result.error);
+    if (deletingIds.includes(id)) {
       return;
     }
 
-    setError(null);
-    setPrompts((previous) => previous.filter((item) => item.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setTitle('');
-      setContent('');
+    setDeletingIds((previous) => [...previous, id]);
+    try {
+      const result = await deletePrompt({ id });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+
+      setError(null);
+      setPrompts((previous) => previous.filter((item) => item.id !== id));
+      if (editingId === id) {
+        setEditingId(null);
+        setTitle('');
+        setContent('');
+      }
+      router.refresh();
+    } finally {
+      setDeletingIds((previous) => previous.filter((item) => item !== id));
     }
-    router.refresh();
   };
 
   return (
@@ -81,8 +119,15 @@ export function PromptManager({ initialPrompts }: PromptManagerProps) {
         onSubmit={handleSubmit}
         submitLabel={editingId ? 'Atualizar' : 'Salvar'}
         error={error}
+        isPending={isSubmitPending}
       />
-      <PromptList prompts={prompts} onEdit={handleEdit} onDelete={handleDelete} />
+      <PromptList
+        prompts={prompts}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        isSubmitPending={isSubmitPending}
+        deletingIds={deletingIds}
+      />
     </section>
   );
 }

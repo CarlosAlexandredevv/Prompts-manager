@@ -6,6 +6,7 @@ type PromptFormProps = {
   onSubmit: () => void;
   submitLabel: string;
   error: string | null;
+  isPending: boolean;
 };
 
 export function PromptForm({
@@ -16,6 +17,7 @@ export function PromptForm({
   onSubmit,
   submitLabel,
   error,
+  isPending,
 }: PromptFormProps) {
   return (
     <section className="space-y-3">
@@ -24,6 +26,7 @@ export function PromptForm({
         <input
           id="prompt-title"
           value={title}
+          disabled={isPending}
           onChange={(event) => onTitleChange(event.target.value)}
         />
       </div>
@@ -33,13 +36,14 @@ export function PromptForm({
         <textarea
           id="prompt-content"
           value={content}
+          disabled={isPending}
           onChange={(event) => onContentChange(event.target.value)}
         />
       </div>
 
       {error ? <p role="alert">{error}</p> : null}
 
-      <button type="button" onClick={onSubmit}>
+      <button type="button" onClick={onSubmit} disabled={isPending}>
         {submitLabel}
       </button>
     </section>
