@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
+import { Prisma } from '@/generated/prisma/client';
 import { prisma } from '@/lib/prisma';
 import {
   type PromptCreateInput,
@@ -13,6 +14,13 @@ import {
 } from '@/lib/validators/prompt';
 
 type ActionResult = { ok: true } | { ok: false; error: string };
+
+const isPromptNotFoundError = (error: unknown): boolean => {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === 'P2025'
+  );
+};
 
 export const createPrompt = async (
   input: PromptCreateInput,
@@ -41,21 +49,20 @@ export const updatePrompt = async (
     return validation;
   }
 
-  const existingPrompt = await prisma.prompt.findUnique({
-    where: { id: input.id },
-  });
-
-  if (!existingPrompt) {
-    return { ok: false, error: 'Prompt not found' };
+  try {
+    await prisma.prompt.update({
+      where: { id: input.id },
+      data: {
+        title: input.title.trim(),
+        content: input.content.trim(),
+      },
+    });
+  } catch (error: unknown) {
+    if (isPromptNotFoundError(error)) {
+      return { ok: false, error: 'Prompt not found' };
+    }
+    throw error;
   }
-
-  await prisma.prompt.update({
-    where: { id: input.id },
-    data: {
-      title: input.title.trim(),
-      content: input.content.trim(),
-    },
-  });
 
   revalidatePath('/');
   return { ok: true };
@@ -69,17 +76,16 @@ export const deletePrompt = async (
     return validation;
   }
 
-  const existingPrompt = await prisma.prompt.findUnique({
-    where: { id: input.id },
-  });
-
-  if (!existingPrompt) {
-    return { ok: false, error: 'Prompt not found' };
+  try {
+    await prisma.prompt.delete({
+      where: { id: input.id },
+    });
+  } catch (error: unknown) {
+    if (isPromptNotFoundError(error)) {
+      return { ok: false, error: 'Prompt not found' };
+    }
+    throw error;
   }
-
-  await prisma.prompt.delete({
-    where: { id: input.id },
-  });
 
   revalidatePath('/');
   return { ok: true };

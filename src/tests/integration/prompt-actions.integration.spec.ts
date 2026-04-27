@@ -109,4 +109,10 @@ describe('prompt-actions integration', () => {
 
     expect(result).toEqual({ ok: false, error: 'Prompt not found' });
   });
+
+  it('delete com id inexistente retorna Prompt not found', async () => {
+    const result = await deletePrompt({ id: 'prompt-inexistente' });
+
+    expect(result).toEqual({ ok: false, error: 'Prompt not found' });
+  });
 });
