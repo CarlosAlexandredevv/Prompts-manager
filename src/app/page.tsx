@@ -1,13 +1,21 @@
-export default function Home() {
+import { PromptManager } from '@/components/prompts/prompt-manager';
+import { prisma } from '@/lib/prisma';
+
+export default async function Home() {
+  const prompts = await prisma.prompt.findMany({
+    orderBy: { updatedAt: 'desc' },
+  });
+
   return (
     <section className="flex min-h-full">
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Selecione um prompt</h1>
-          <p className="text-gray-400">
-            Escolha um prompt da lista ao lado para visualizar e editar
-          </p>
-        </div>
+      <div className="flex flex-1">
+        <PromptManager
+          initialPrompts={prompts.map((prompt) => ({
+            id: prompt.id,
+            title: prompt.title,
+            content: prompt.content,
+          }))}
+        />
       </div>
     </section>
   );
