@@ -11,7 +11,7 @@ jest.mock('next/cache', () => ({
 
 if (typeof globalThis.setImmediate === 'undefined') {
   globalThis.setImmediate = ((callback: (...args: unknown[]) => void, ...args: unknown[]) =>
-    setTimeout(callback, 0, ...args)) as typeof setImmediate;
+    setTimeout(callback, 0, ...args)) as unknown as typeof setImmediate;
 }
 
 describe('prompt-actions integration', () => {
