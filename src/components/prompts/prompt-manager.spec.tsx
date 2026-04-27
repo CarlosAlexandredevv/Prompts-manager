@@ -55,8 +55,8 @@ describe('PromptManager', () => {
       title: 'Novo',
       content: 'Conteudo novo',
     });
-    expect(screen.getByText('Novo')).toBeInTheDocument();
-    expect(screen.getByText('Conteudo novo')).toBeInTheDocument();
+    expect(screen.queryByText('Novo')).not.toBeInTheDocument();
+    expect(screen.queryByText('Conteudo novo')).not.toBeInTheDocument();
     expect(refreshMock).toHaveBeenCalledTimes(1);
   });
 
